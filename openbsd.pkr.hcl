@@ -1,3 +1,12 @@
+packer {
+  required_plugins {
+    qemu = {
+      version = ">= 1.1.4"
+      source = "github.com/hashicorp/qemu"
+    }
+  }
+}
+
 variable "os_version" {
   type = string
   description = "The version of the operating system to download and install"

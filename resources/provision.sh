@@ -5,7 +5,9 @@ set -exu
 install_extra_packages() {
   pkg_add bash
   pkg_add curl
-  pkg_add rsync--
+  pkg_add rust
+  pkg_add git--
+ # pkg_add rsync--
 }
 
 setup_sudo() {
@@ -15,10 +17,12 @@ setup_sudo() {
 #includedir /etc/sudoers.d
 EOF
 
+# don't allow $SECONDARY_USER user to perform priv ops.
+
   mkdir -p /etc/sudoers.d
   cat <<EOF > "/etc/sudoers.d/$SECONDARY_USER"
 Defaults:$SECONDARY_USER !requiretty
-$SECONDARY_USER ALL=(ALL) NOPASSWD: ALL
+$SECONDARY_USER ALL=(ALL:ALL) ALL
 EOF
 
   chmod 440 "/etc/sudoers.d/$SECONDARY_USER"
@@ -77,15 +81,40 @@ sendmail_flags=NO
 EOF
 }
 
-setup_work_directory() {
-  local work_directory=/Users/runner/work
+setup_freya_home_directory() {
+  local work_directory="/home/$SECONDARY_USER"
   local permissions="$SECONDARY_USER:$SECONDARY_USER"
 
-  mkdir -p "$work_directory"
-  chown "$permissions" "$work_directory"
+  cat <<EOF >> /home/$SECONDARY_USER/env.toml
+  # $HOMEDIR
 
-  ln -s "$work_directory/" "/home/$SECONDARY_USER/work"
-  chown "$permissions" "$work_directory"
+# if system does not support RUSTUP, then this should be used.
+# a value is a list separated by the ',' without spaces which are
+# a names of the env values.
+[[envs]]
+key = "FREYA_CARGO_DIR_PATHS"
+value = "STABLE-X86_64-UNKNOWN-OPENBSD"
+
+[[envs]]
+key = "STABLE-X86_64-UNKNOWN-OPENBSD"
+value = "/usr/local/bin/cargo"
+
+# a default toolchain name. A value is a full toolchain name
+# channel-arch-hw-os-abi
+[[envs]]
+key = "FREYA_DEFAULT_TOOLCHAIN"
+value = "stable-x86_64-unknown-openbsd"
+EOF
+  chown "$permissions" "$work_directory/env.toml"
+}
+
+setup_freyashell() {
+
+  # set the shell
+  echo "/usr/local/bin/freyashell" >> /etc/shells
+
+  # set freya user to work with freyashell
+  chsh -s /usr/local/bin/freyashell freya
 }
 
 install_extra_packages
@@ -94,4 +123,5 @@ configure_boot_flags
 configure_boot_scripts
 configure_ssh
 configure_flags
-setup_work_directory
+setup_freya_home_directory
+setup_freyashell

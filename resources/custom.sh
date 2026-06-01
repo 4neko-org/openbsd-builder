@@ -7,7 +7,7 @@ cd /tmp
 
 git clone --branch v0.1.0-debug https://codeberg.org/4neko/freyashell.git
 
-cd ./freyachell
+cd ./freyashell
 
 cargo build --release
 

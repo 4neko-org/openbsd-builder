@@ -86,7 +86,6 @@ setup_freya_home_directory() {
   local permissions="$SECONDARY_USER:$SECONDARY_USER"
 
   cat <<EOF >> /home/$SECONDARY_USER/env.toml
-  # $HOMEDIR
 
 # if system does not support RUSTUP, then this should be used.
 # a value is a list separated by the ',' without spaces which are

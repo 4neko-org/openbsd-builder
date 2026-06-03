@@ -58,7 +58,7 @@ mount_freya_disk() {
   if [ -n "\$disk" ]; then
     disklabel -w -A /dev/r\${disk}c
     newfs /dev/r\${disk}a
-    mount /dev/r\${disk}a /home/$SECONDARY_USER/storage
+    mount /dev/\${disk}a /home/$SECONDARY_USER/storage
   fi
 }
 
@@ -168,12 +168,17 @@ configure_fstab() {
 
   mkdir /cfg/var/etc-rw
 
-  cp /etc/random.seed /cfg/var/etc-rw
-  rm /etc/random.seed
+  mv /etc/random.seed /cfg/var/etc-rw
   ln -s /var/etc-rw/random.seed /etc/random.seed 
 
-  cp /etc/resolv.conf /cfg/var/etc-rw
-  rm /etc/resolv.conf
+  rcctl stop resolvd
+  rcctl stop slaacd
+  rcctl stop smtpd
+  rcctl stop ntpd
+  rcctl stop pflogd
+  rcctl stop syslogd
+
+  mv /etc/resolv.conf /cfg/var/etc-rw
   ln -s /var/etc-rw/resolv.conf /etc/resolv.conf
 
   rm -rf /var/*

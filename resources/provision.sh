@@ -30,7 +30,7 @@ EOF
 
 configure_boot_scripts() {
   cat <<EOF >> /etc/rc.local
-RESOURCES_MOUNT_PATH='/mnt/resources'
+RESOURCES_MOUNT_PATH='/tmp/resources'
 
 mount_resources_disk() {
   disk=\$(sysctl -n hw.disknames | sed 's/:[^,]*//g' | cut -d ',' -f 2 -s)
@@ -38,8 +38,8 @@ mount_resources_disk() {
   if [ -n "\$disk" ]; then
     partition=\$(disklabel \$disk | sed -n '/^ *[abd-z]: /s/^ *\([abd-z]\):.*/\1/p')
     dev="/dev/\${disk}\${partition}"
-    mkdir -p /mnt/resources
-    mount_msdos "\$dev" /mnt/resources
+    mkdir -p "\$RESOURCES_MOUNT_PATH"
+    mount_msdos "\$dev" "\$RESOURCES_MOUNT_PATH"
   fi
 }
 

@@ -151,10 +151,10 @@ setup_freyashell() {
 configure_fstab() {
   cp /etc/fstab /tmp/fstab
   sed '/.a\ \/\ ffs\ /s/rw/ro/' /tmp/fstab > /etc/fstab
-  echo "swap /tmp mfs rw,nodev,nosuid,-s=128m 0 0" > /etc/fstab
-  echo "swap /dev mfs rw,-P=/cfg/dev,-s=32m 0 0" > /etc/fstab
-  echo "swap /var mfs rw,-P=/cfg/var,-s=800m 0 0" > /etc/fstab
-  echo "swap /home/$SECONDARY_USER/.ssh mfs rw,-s=4m 0 0" > /etc/fstab
+  echo "swap /tmp mfs rw,nodev,nosuid,-s=128m 0 0" >> /etc/fstab
+  echo "swap /dev mfs rw,-P=/cfg/dev,-s=32m 0 0" >> /etc/fstab
+  echo "swap /var mfs rw,-P=/cfg/var,-s=800m 0 0" >> /etc/fstab
+  echo "swap /home/$SECONDARY_USER/.ssh mfs rw,-s=4m 0 0" >> /etc/fstab
 
   rm -f /dev/log
   rm -f /dev/slaacd.sock

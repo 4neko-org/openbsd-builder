@@ -28,11 +28,6 @@ EOF
   chmod 440 "/etc/sudoers.d/$SECONDARY_USER"
 }
 
-setup_freya_datadir() {
-  mkdir "/home/$SECONDARY_USER/storage"
-  chown "$SECONDARY_USER:$SECONDARY_USER" "/home/$SECONDARY_USER/storage"
-}
-
 configure_boot_scripts() {
   cat <<EOF >> /etc/rc.local
 RESOURCES_MOUNT_PATH='/mnt/resources'
@@ -82,6 +77,77 @@ set timeout 1
 EOF
 }
 
+
+
+configure_ssh() {
+  cp /etc/ssh/sshd_config /tmp/sshd_config
+  sed '/^PermitRootLogin/s/ yes$/ no/' /tmp/sshd_config > /etc/ssh/sshd_config
+  rm /tmp/sshd_config
+  tee -a /etc/ssh/sshd_config <<EOF
+AcceptEnv *
+UseDNS no
+EOF
+}
+
+configure_flags() {
+  tee /etc/rc.conf.local <<EOF
+sndiod_flags=NO
+sendmail_flags=NO
+EOF
+}
+
+setup_freya_home_directory() {
+  local work_directory="/home/$SECONDARY_USER"
+  local permissions="$SECONDARY_USER:$SECONDARY_USER"
+
+  mkdir "$work_directory/storage"
+  chown "$permissions" "/home/$SECONDARY_USER/storage"
+
+  cat <<EOF >> /home/$SECONDARY_USER/env.toml
+
+# if system does not support RUSTUP, then this should be used.
+# a value is a list separated by the ',' without spaces which are
+# a names of the env values.
+[[envs]]
+key = "FREYA_CARGO_DIR_PATHS"
+value = "STABLE-X86_64-UNKNOWN-OPENBSD"
+
+[[envs]]
+key = "STABLE-X86_64-UNKNOWN-OPENBSD"
+value = "/usr/local/bin/cargo"
+
+# a default toolchain name. A value is a full toolchain name
+# channel-arch-hw-os-abi
+[[envs]]
+key = "FREYA_DEFAULT_TOOLCHAIN"
+value = "stable-x86_64-unknown-openbsd"
+EOF
+  chown "$permissions" "$work_directory/env.toml"
+}
+
+setup_freyashell() {
+  cd /tmp
+
+  git clone --branch v0.1.0 https://codeberg.org/4neko/freyashell.git
+
+  cd ./freyashell
+
+  cargo build --release
+
+  cp ./target/release/freyashell /usr/local/bin/freyashell
+
+  cd /tmp
+
+  rm -rf /tmp/freyashell
+
+  # set the shell
+  echo "/usr/local/bin/freyashell" >> /etc/shells
+
+  # set freya user to work with freyashell
+  chsh -s /usr/local/bin/freyashell freya
+}
+
+
 configure_fstab() {
   cp /etc/fstab /tmp/fstab
   sed '/.a\ \/\ ffs\ /s/rw/ro/' /tmp/fstab > /etc/fstab
@@ -111,65 +177,13 @@ configure_fstab() {
   ln -s /var/etc-rw/resolv.conf /etc/resolv.conf
 
   rm -rf /var/*
-}
-
-configure_ssh() {
-  cp /etc/ssh/sshd_config /tmp/sshd_config
-  sed '/^PermitRootLogin/s/ yes$/ no/' /tmp/sshd_config > /etc/ssh/sshd_config
-  rm /tmp/sshd_config
-  tee -a /etc/ssh/sshd_config <<EOF
-AcceptEnv *
-UseDNS no
-EOF
-}
-
-configure_flags() {
-  tee /etc/rc.conf.local <<EOF
-sndiod_flags=NO
-sendmail_flags=NO
-EOF
-}
-
-setup_freya_home_directory() {
-  local work_directory="/home/$SECONDARY_USER"
-  local permissions="$SECONDARY_USER:$SECONDARY_USER"
-
-  cat <<EOF >> /home/$SECONDARY_USER/env.toml
-
-# if system does not support RUSTUP, then this should be used.
-# a value is a list separated by the ',' without spaces which are
-# a names of the env values.
-[[envs]]
-key = "FREYA_CARGO_DIR_PATHS"
-value = "STABLE-X86_64-UNKNOWN-OPENBSD"
-
-[[envs]]
-key = "STABLE-X86_64-UNKNOWN-OPENBSD"
-value = "/usr/local/bin/cargo"
-
-# a default toolchain name. A value is a full toolchain name
-# channel-arch-hw-os-abi
-[[envs]]
-key = "FREYA_DEFAULT_TOOLCHAIN"
-value = "stable-x86_64-unknown-openbsd"
-EOF
-  chown "$permissions" "$work_directory/env.toml"
-}
-
-setup_freyashell() {
-
-  # set the shell
-  echo "/usr/local/bin/freyashell" >> /etc/shells
-
-  # set freya user to work with freyashell
-  chsh -s /usr/local/bin/freyashell freya
+  rm -rf /tmp/*
 }
 
 install_extra_packages
 setup_sudo
 configure_boot_flags
 configure_boot_scripts
-setup_freya_datadir
 configure_ssh
 configure_flags
 setup_freya_home_directory

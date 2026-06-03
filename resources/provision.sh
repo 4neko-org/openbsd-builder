@@ -110,6 +110,7 @@ configure_fstab() {
   rm /etc/resolv.conf
   ln -s /var/etc-rw/resolv.conf /etc/resolv.conf
 
+  rm -rf /var/*
 }
 
 configure_ssh() {

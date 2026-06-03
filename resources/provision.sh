@@ -6,8 +6,8 @@ install_extra_packages() {
   pkg_add bash
   pkg_add curl
   pkg_add rust
-  pkg_add git--
- # pkg_add rsync--
+  pkg_add git
+  pkg_add rsync--
 }
 
 setup_sudo() {
@@ -17,7 +17,7 @@ setup_sudo() {
 #includedir /etc/sudoers.d
 EOF
 
-# don't allow $SECONDARY_USER user to perform priv ops.
+# ?todo don't allow $SECONDARY_USER user to perform priv ops.
 
   mkdir -p /etc/sudoers.d
   cat <<EOF > "/etc/sudoers.d/$SECONDARY_USER"
@@ -26,6 +26,11 @@ $SECONDARY_USER ALL=(ALL:ALL) ALL
 EOF
 
   chmod 440 "/etc/sudoers.d/$SECONDARY_USER"
+}
+
+setup_freya_datadir() {
+  mkdir "/home/$SECONDARY_USER/storage"
+  chown "$SECONDARY_USER:$SECONDARY_USER" "/home/$SECONDARY_USER/storage"
 }
 
 configure_boot_scripts() {
@@ -45,15 +50,28 @@ mount_resources_disk() {
 
 install_authorized_keys() {
   if [ -s "\$RESOURCES_MOUNT_PATH/KEYS" ]; then
-    mkdir -p "/home/$SECONDARY_USER/.ssh"
+# mkdir -p "/home/$SECONDARY_USER/.ssh"
     cp "\$RESOURCES_MOUNT_PATH/KEYS" "/home/$SECONDARY_USER/.ssh/authorized_keys"
     chown "$SECONDARY_USER:$SECONDARY_USER" "/home/$SECONDARY_USER/.ssh/authorized_keys"
     chmod 600 "/home/$SECONDARY_USER/.ssh/authorized_keys"
   fi
 }
 
+mount_freya_disk() {
+  disk=\$(sysctl -n hw.disknames | sed 's/:[^,]*//g' | cut -d ',' -f 3 -s)
+
+  if [ -n "\$disk" ]; then
+    disklabel -w -A /dev/r\${disk}c
+    newfs /dev/r\${disk}a
+    mount /dev/r\${disk}a /home/$SECONDARY_USER/storage
+  fi
+}
+
+
+
 mount_resources_disk
 install_authorized_keys
+mount_freya_disk
 EOF
 }
 
@@ -62,6 +80,36 @@ configure_boot_flags() {
 set tty com0
 set timeout 1
 EOF
+}
+
+configure_fstab() {
+  cp /etc/fstab /tmp/fstab
+  sed '/.a\ \/\ ffs\ /s/rw/ro/' /tmp/fstab > /etc/fstab
+  echo "swap /tmp mfs rw,nodev,nosuid,-s=128m 0 0" > /etc/fstab
+  echo "swap /dev mfs rw,-P=/cfg/dev,-s=32m 0 0" > /etc/fstab
+  echo "swap /var mfs rw,-P=/cfg/var,-s=800m 0 0" > /etc/fstab
+  echo "swap /home/$SECONDARY_USER/.ssh mfs rw,-s=4m 0 0" > /etc/fstab
+
+  rm -f /dev/log
+  rm -f /dev/slaacd.sock
+  rm -f /var/run/cron.sock
+  rm -f /var/run/ntpd.sock
+  rm -f /var/run/smtpd.sock
+
+  mkdir /cfg  
+  cp -Rp /var /cfg
+  cp -Rp /dev /cfg
+
+  mkdir /cfg/var/etc-rw
+
+  cp /etc/random.seed /cfg/var/etc-rw
+  rm /etc/random.seed
+  ln -s /var/etc-rw/random.seed /etc/random.seed 
+
+  cp /etc/resolv.conf /cfg/var/etc-rw
+  rm /etc/resolv.conf
+  ln -s /var/etc-rw/resolv.conf /etc/resolv.conf
+
 }
 
 configure_ssh() {
@@ -120,7 +168,9 @@ install_extra_packages
 setup_sudo
 configure_boot_flags
 configure_boot_scripts
+setup_freya_datadir
 configure_ssh
 configure_flags
 setup_freya_home_directory
 setup_freyashell
+configure_fstab

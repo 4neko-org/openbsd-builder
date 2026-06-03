@@ -12,3 +12,7 @@ cd ./freyashell
 cargo build --release
 
 cp ./target/release/freyashell /usr/local/bin/freyashell
+
+cd /tmp
+
+rm -rf /tmp/freyashell

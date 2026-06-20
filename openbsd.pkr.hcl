@@ -116,7 +116,7 @@ variable "readonly_boot_media" {
 }
 
 locals {
-  image_architecture = var.architecture == "x86-64" ? "amd64" : var.architecture
+  image_architecture = var.architecture == "x86_64" ? "amd64" : var.architecture
   image = "miniroot${replace(var.os_version, ".", "")}.img"
   has_checksum_prefix = substr(var.checksum, 0, 7) == "sha256:"
 
@@ -133,8 +133,9 @@ locals {
   iso_target_path = "packer_cache"
   iso_full_target_path = "${local.iso_target_path}/${sha1(local.checksum)}.${local.iso_target_extension}"
 
+  # fix this (it seems it was vibecoded)
   qemu_architecture = var.architecture == "arm64" ? "aarch64" : (
-    var.architecture == "x86-64" ? "x86_64" : var.architecture
+    var.architecture == "x86_64" ? "x86_64" : var.architecture
   )
 
   readonly_boot_media = var.readonly_boot_media ? "on" : "off"

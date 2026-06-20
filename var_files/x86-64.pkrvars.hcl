@@ -1,4 +1,4 @@
-architecture = "x86-64"
+architecture = "x86_64"
 firmware = "resources/ovmf.fd"
 net_device = "virtio-net" 
 #"e1000"

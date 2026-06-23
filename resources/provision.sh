@@ -77,7 +77,11 @@ set timeout 1
 EOF
 }
 
-
+configure_pre_login_message(){
+  sed '/(%h) (%t)/s/\\r\\n\\r\\n/ FREYABOOTREADY\\r\\n\\r\\n/' /etc/gettytab > /tmp/gettytab
+  rm /etc/gettytab
+  mv /tmp/gettytab /etc/gettytab
+}
 
 configure_ssh() {
   cp /etc/ssh/sshd_config /tmp/sshd_config
@@ -149,6 +153,8 @@ setup_freyashell() {
 
 
 configure_fstab() {
+  mkdir -p "/mnt/resources"
+
   cp /etc/fstab /tmp/fstab
   sed '/.a\ \/\ ffs\ /s/rw/ro/' /tmp/fstab > /etc/fstab
   echo "swap /tmp mfs rw,nodev,nosuid,-s=128m 0 0" >> /etc/fstab
@@ -188,6 +194,7 @@ configure_fstab() {
 install_extra_packages
 setup_sudo
 configure_boot_flags
+configure_pre_login_message
 configure_boot_scripts
 configure_ssh
 configure_flags

@@ -200,6 +200,7 @@ install_extra_packages
 setup_sudo
 configure_boot_flags
 configure_pre_login_message
+configure_ttys
 configure_boot_scripts
 configure_ssh
 configure_flags

@@ -83,6 +83,11 @@ configure_pre_login_message(){
   mv /tmp/gettytab /etc/gettytab
 }
 
+configure_ttys(){
+  sed -i '/console.*/s/off secure/on secure/' /etc/ttys
+  sed -i '/ttyC[1-5].*/s/on  secure/off secure/' /etc/ttys
+}
+
 configure_ssh() {
   cp /etc/ssh/sshd_config /tmp/sshd_config
   sed '/^PermitRootLogin/s/ yes$/ no/' /tmp/sshd_config > /etc/ssh/sshd_config

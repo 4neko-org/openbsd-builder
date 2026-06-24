@@ -67,20 +67,20 @@ format_swap() {
   disk=\$(sysctl -n hw.disknames | sed 's/:[^,]*//g' | cut -d ',' -f 4 -s)
 
   if [ -n "\$disk" ]; then
-    disklabel -E \$disk << 'EOF'
+    disklabel -E \$disk << EOF2
 z
 w
 q
-'EOF'
+EOF2
 
-    disklabel -E \$disk << 'EOF'
+    disklabel -E \$disk << EOF3
 a b
 64
 *
 swap
 w
 q
-'EOF'
+EOF3
     swapctl -a /dev/\${disk}b
   fi
 }

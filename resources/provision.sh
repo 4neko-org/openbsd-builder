@@ -63,11 +63,33 @@ mount_freya_disk() {
   fi
 }
 
+format_swap() {
+  disk=\$(sysctl -n hw.disknames | sed 's/:[^,]*//g' | cut -d ',' -f 4 -s)
+
+  if [ -n "\$disk" ]; then
+    disklabel -E \$disk << 'EOF'
+z
+w
+q
+'EOF'
+
+    disklabel -E \$disk << 'EOF'
+a b
+64
+*
+swap
+w
+q
+'EOF'
+    swapctl -a /dev/\${disk}b
+  fi
+}
 
 
 mount_resources_disk
 install_authorized_keys
 mount_freya_disk
+format_swap
 EOF
 }
 
@@ -161,8 +183,9 @@ setup_freyashell() {
 configure_fstab() {
   mkdir -p "/mnt/resources"
 
-  cp /etc/fstab /tmp/fstab
-  sed '/.a\ \/\ ffs\ /s/rw/ro/' /tmp/fstab > /etc/fstab
+  #cp /etc/fstab /tmp/fstab
+  sed -i '/.a\ \/\ ffs\ /s/rw/ro/' /etc/fstab
+  sed -i '/.b none swap sw/d' /etc/fstab
   echo "swap /tmp mfs rw,nodev,nosuid,-s=128m 0 0" >> /etc/fstab
   echo "swap /dev mfs rw,-P=/cfg/dev,-s=32m 0 0" >> /etc/fstab
   echo "swap /var mfs rw,-P=/cfg/var,-s=800m 0 0" >> /etc/fstab

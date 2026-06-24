@@ -59,6 +59,7 @@ mount_freya_disk() {
     disklabel -w -A /dev/r\${disk}c
     newfs /dev/r\${disk}a
     mount /dev/\${disk}a /home/$SECONDARY_USER/storage
+    chown -R "$SECONDARY_USER:$SECONDARY_USER" "/home/$SECONDARY_USER/storage"
   fi
 }
 
@@ -110,7 +111,7 @@ setup_freya_home_directory() {
   local permissions="$SECONDARY_USER:$SECONDARY_USER"
 
   mkdir "$work_directory/storage"
-  chown "$permissions" "/home/$SECONDARY_USER/storage"
+  chown -R "$permissions" "$work_directory/storage"
 
   cat <<EOF >> /home/$SECONDARY_USER/env.toml
 

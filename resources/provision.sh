@@ -160,7 +160,7 @@ EOF
 setup_freyashell() {
   cd /tmp
 
-  git clone --branch v0.1.0 https://codeberg.org/4neko/freyashell.git
+  git clone --depth 1 --branch v0.1.7 https://codeberg.org/4neko/freyashell.git
 
   cd ./freyashell
 

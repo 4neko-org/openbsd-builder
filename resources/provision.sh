@@ -59,6 +59,8 @@ mount_freya_disk() {
     disklabel -w -A /dev/r\${disk}c
     newfs /dev/r\${disk}a
     mount /dev/\${disk}a /home/$SECONDARY_USER/storage
+
+    cp -r /home/$SECONDARY_USER/.cargo /home/$SECONDARY_USER/storage/.cargo
     chown -R "$SECONDARY_USER:$SECONDARY_USER" "/home/$SECONDARY_USER/storage"
   fi
 }
@@ -137,6 +139,10 @@ setup_freya_home_directory() {
 
   cat <<EOF >> /home/$SECONDARY_USER/env.toml
 
+[[envs]]
+key = "CARGO_HOME"
+value = "/home/$SECONDARY_USER/storage/.cargo"
+
 # if system does not support RUSTUP, then this should be used.
 # a value is a list separated by the ',' without spaces which are
 # a names of the env values.
@@ -153,6 +159,8 @@ value = "/usr/local/bin/cargo"
 [[envs]]
 key = "FREYA_DEFAULT_TOOLCHAIN"
 value = "stable-x86_64-unknown-openbsd"
+
+
 EOF
   chown "$permissions" "$work_directory/env.toml"
 }

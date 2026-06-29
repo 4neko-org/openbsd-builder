@@ -60,7 +60,7 @@ mount_freya_disk() {
     newfs /dev/r\${disk}a
     mount /dev/\${disk}a /home/$SECONDARY_USER/storage
 
-    cp -r /home/$SECONDARY_USER/.cargo /home/$SECONDARY_USER/storage/.cargo
+    mkdir /home/$SECONDARY_USER/storage/.cargo
     chown -R "$SECONDARY_USER:$SECONDARY_USER" "/home/$SECONDARY_USER/storage"
   fi
 }

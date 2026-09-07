@@ -6,6 +6,7 @@ install_extra_packages() {
   pkg_add bash
   pkg_add curl
   pkg_add rust
+  pkg_add rust-analyzer
   pkg_add git
   pkg_add rsync--
 }
@@ -102,10 +103,14 @@ set timeout 1
 EOF
 }
 
+# based on the https://jpmens.net/2019/12/18/ip-address-of-machine-on-console/
 configure_pre_login_message(){
-  sed '/(%h) (%t)/s/\\r\\n\\r\\n/ FREYABOOTREADY\\r\\n\\r\\n/' /etc/gettytab > /tmp/gettytab
-  rm /etc/gettytab
-  mv /tmp/gettytab /etc/gettytab
+#sed -i '/(%h) (%t)/s/\\r\\n\\r\\n/ FREYABOOTREADY\\r\\n\\r\\n/' /etc/gettytab 
+  #patch the rc.local
+cat <<EOF >> /etc/rc.local
+ip_msg="\$(ifconfig vio0 | awk '/inet / { print \$2 }') "
+sed -i '/(%h) (%t)/s/\\r\\n\\r\\n/ FREYABOOTREADY\\r\\n\\r\\nFREYA>IP4>'"\${ip_msg}"'\\r\\n/' /etc/gettytab
+EOF
 }
 
 configure_ttys(){
@@ -152,7 +157,7 @@ value = "STABLE-X86_64-UNKNOWN-OPENBSD"
 
 [[envs]]
 key = "STABLE-X86_64-UNKNOWN-OPENBSD"
-value = "/usr/local/bin/cargo"
+value = "toolchain = {cargo = \"/usr/local/bin/cargo\", rust_analyzer = \"/usr/local/bin/rust-analyzer\"}"
 
 # a default toolchain name. A value is a full toolchain name
 # channel-arch-hw-os-abi
@@ -222,7 +227,9 @@ configure_fstab() {
   rcctl stop syslogd
 
   mv /etc/resolv.conf /cfg/var/etc-rw
+  mv /etc/gettytab /cfg/var/etc-rw
   ln -s /var/etc-rw/resolv.conf /etc/resolv.conf
+  ln -s /var/etc-rw/gettytab /etc/gettytab
 
   rm -rf /var/*
   rm -rf /tmp/*

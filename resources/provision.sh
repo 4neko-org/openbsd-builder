@@ -173,17 +173,17 @@ EOF
 setup_freyashell() {
   cd /tmp
 
-  git clone --depth 1 --branch v0.1.8 https://codeberg.org/4neko/freyashell.git
+  git clone --depth 1 --branch v0.1.20 https://codeberg.org/4neko/freya.git
 
-  cd ./freyashell
+  cd ./freya
 
-  cargo build --release
+  cargo build --bin freyashell --release
 
   cp ./target/release/freyashell /usr/local/bin/freyashell
 
   cd /tmp
 
-  rm -rf /tmp/freyashell
+  rm -rf /tmp/freya
 
   # set the shell
   echo "/usr/local/bin/freyashell" >> /etc/shells

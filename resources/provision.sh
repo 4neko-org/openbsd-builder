@@ -88,11 +88,19 @@ EOF3
   fi
 }
 
+configure_pre_login_message() {
+  ip_msg="\$(ifconfig vio0 | awk '/inet / { print \$2 }') "
+  rust_cv="\$(/usr/local/bin/rustc -V | cut -d ' ' -f1,2)) "
+  rust_anv="\$(/usr/local/bin/rust-analyzer -V)) "
+  sed -i '/(%h) (%t)/s/\\r\\n\\r\\n/ FREYABOOTREADY\\r\\n\\r\\nFREYA>IP4>'"\${ip_msg}"'\\r\\nFREYA>RUSTC>'"\${rust_cv}"'\\r\\nFREYA>RUSTANALYZER>'"\${rust_anv}"'\\r\\n/' /var/etc-rw/gettytab
+}
+
 
 mount_resources_disk
 install_authorized_keys
 mount_freya_disk
 format_swap
+configure_pre_login_message
 EOF
 }
 
@@ -104,14 +112,15 @@ EOF
 }
 
 # based on the https://jpmens.net/2019/12/18/ip-address-of-machine-on-console/
-configure_pre_login_message(){
+# moved to configure_boot_scripts()
+#configure_pre_login_message(){
 #sed -i '/(%h) (%t)/s/\\r\\n\\r\\n/ FREYABOOTREADY\\r\\n\\r\\n/' /etc/gettytab 
   #patch the rc.local
-cat <<EOF >> /etc/rc.local
-ip_msg="\$(ifconfig vio0 | awk '/inet / { print \$2 }') "
-sed -i '/(%h) (%t)/s/\\r\\n\\r\\n/ FREYABOOTREADY\\r\\n\\r\\nFREYA>IP4>'"\${ip_msg}"'\\r\\n/' /etc/gettytab
-EOF
-}
+#cat <<EOF >> /etc/rc.local
+#ip_msg="\$(ifconfig vio0 | awk '/inet / { print \$2 }') "
+#sed -i '/(%h) (%t)/s/\\r\\n\\r\\n/ FREYABOOTREADY\\r\\n\\r\\nFREYA>IP4>'"\${ip_msg}"'\\r\\n/' /var/etc-rw/gettytab
+#EOF
+#}
 
 configure_ttys(){
   sed -i '/console.*/s/off secure/on secure/' /etc/ttys
@@ -238,7 +247,7 @@ configure_fstab() {
 install_extra_packages
 setup_sudo
 configure_boot_flags
-configure_pre_login_message
+#configure_pre_login_message moved to configure_boot_scripts
 configure_ttys
 configure_boot_scripts
 configure_ssh

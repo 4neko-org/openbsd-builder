@@ -90,7 +90,7 @@ EOF3
 
 configure_pre_login_message() {
   ip_msg="\$(ifconfig vio0 | awk '/inet / { print \$2 }') "
-  rust_cv="\$(/usr/local/bin/rustc -V | cut -d ' ' -f1,2) "
+  rust_cv="\$(/usr/local/bin/rustc -V | cut -d ' ' -f2) "
   rust_anv="\$(/usr/local/bin/rust-analyzer -V) "
   sed -i '/(%h) (%t)/s/\\\\r\\\\n\\\\r\\\\n/ FREYABOOTREADY\\\\r\\\\n\\\\r\\\\nFREYA>IP4>'"\${ip_msg}"'\\\\r\\\\nFREYA>RUSTC>'"\${rust_cv}"'\\\\r\\\\nFREYA>RUSTANALYZER>'"\${rust_anv}"'\\\\r\\\\n/' /var/etc-rw/gettytab
 }
